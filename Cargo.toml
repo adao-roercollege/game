@@ -1,0 +1,26 @@
+[package]
+name = "bevy_game"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# TODO: remove "dynamic_linking" before release, its for development only
+bevy = { version = "0.15", features = [
+  "dynamic_linking",
+  "file_watcher",
+  "wayland",
+] }
+# TODO: uncomment on release
+#log = { version = "*", features = ["max_level_debug", "release_max_level_warn"] }
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+opt-level = 3
+strip = "debuginfo"
