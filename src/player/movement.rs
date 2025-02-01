@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-pub struct PhysicsPlugin;
+pub struct MovementPlugin;
 
 #[derive(Component, Clone, Copy, PartialEq, Default, Deref, DerefMut)]
 pub struct Velocity(Vec3);
@@ -13,7 +13,7 @@ pub struct PreviousPhysicalTranslation(Vec3);
 
 const PLAYER_SPEED: f32 = 210.0;
 
-impl Plugin for PhysicsPlugin {
+impl Plugin for MovementPlugin {
   fn build(&self, app: &mut App) {
     app.add_systems(FixedUpdate, advance_physics);
     app.add_systems(

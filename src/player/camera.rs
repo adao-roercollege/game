@@ -7,8 +7,19 @@ const CAMERA_DECAY_RATE: f32 = 4.0;
 
 impl Plugin for CameraPlugin {
   fn build(&self, app: &mut App) {
+    app.add_systems(Startup, spawn_camera);
     app.add_systems(RunFixedMainLoop, update_camera);
   }
+}
+
+fn spawn_camera(mut commands: Commands) {
+  commands.spawn((
+    Camera2d,
+    OrthographicProjection {
+      scale: 0.5,
+      ..OrthographicProjection::default_2d()
+    },
+  ));
 }
 
 fn update_camera(
