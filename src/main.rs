@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use entity::*;
 use player::{camera::CameraPlugin, movement::MovementPlugin, sprite::PlayerSpritePlugin};
-use world::map::MapPlugin;
+use world::load::MapPlugin;
 
 mod entity;
 mod player;

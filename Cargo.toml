@@ -11,6 +11,7 @@ bevy = { version = "0.15", features = [
   "wayland",
 ] }
 bevy_ecs_ldtk = "0.11.0"
+#mediapipe-rs = { git = "https://github.com/WasmEdge/mediapipe-rs.git" }
 # TODO: uncomment on release
 #log = { version = "*", features = [
 #  "max_level_debug",

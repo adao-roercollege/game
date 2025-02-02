@@ -11,7 +11,7 @@ pub struct PhysicalTranslation(Vec3);
 #[derive(Component, Clone, Copy, PartialEq, Default, Deref, DerefMut)]
 pub struct PreviousPhysicalTranslation(Vec3);
 
-const PLAYER_SPEED: f32 = 210.0;
+const PLAYER_SPEED: f32 = 100.0;
 
 impl Plugin for MovementPlugin {
   fn build(&self, app: &mut App) {
