@@ -1,0 +1,82 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  PROJECT_NAME: game
+  CARGO_TERM_COLOR: always
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - name: linux-amd64
+            target: x86_64-unknown-linux-gnu
+          - name: win-amd64
+            target: x86_64-pc-windows-gnu
+          - name: linux-arm64
+            target: aarch64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: "${{ matrix.target }}"
+
+      - name: Install Mold
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: |
+          sudo apt update
+          sudo apt install -y clang mold
+
+      - name: Install Cross
+        shell: bash
+        run: |
+          curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+          cargo binstall --no-confirm cross
+
+      - name: Configure dependencies
+        run: |
+          cargo remove bevy
+          cargo add bevy -F wayland
+          cargo add log -F max_level_debug,release_max_level_warn
+          sed -i -E 's/(log = \{ version = )"[0-9.]+"(, features = \[.*\] \})/\1"*"\2/' Cargo.toml
+
+      - name: Setup Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build Binary
+        run: cross build --verbose --locked --release --target ${{ matrix.target }}
+
+      - name: Release Binary
+        shell: bash
+        run: |
+          BIN_SUFFIX=""
+          if [[ "${{ matrix.name }}" == "win-amd64" ]]; then
+            BIN_SUFFIX=".exe"
+          fi
+
+          # The built binary output location
+          BIN_OUTPUT="target/${{ matrix.target }}/release/${PROJECT_NAME}${BIN_SUFFIX}"
+
+          # Define a better name for the final binary
+          BIN_RELEASE="${PROJECT_NAME}-${{ matrix.name }}${BIN_SUFFIX}"
+          BIN_RELEASE_VERSIONED="${PROJECT_NAME}-${{ github.ref_name }}-${{ matrix.name }}${BIN_SUFFIX}"
+
+          # Move the built binary where you want it
+          mv "${BIN_OUTPUT}" "./build/${BIN_RELEASE}"
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: build/${{ env.PROJECT_NAME }}-${{ matrix.name }}*
