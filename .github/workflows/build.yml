@@ -62,6 +62,15 @@ jobs:
           sudo apt update
           sudo apt install -y pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 
+      - name: Configure pkg-config for cross-compilation
+        if: |
+          matrix.target == 'x86_64-unknown-linux-gnu' ||
+          matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          export PKG_CONFIG_ALLOW_CROSS=1
+          export PKG_CONFIG_SYSROOT_DIR=/usr/aarch64-linux-gnu
+          export PKG_CONFIG_PATH=/usr/aarch64-linux-gnu/lib/pkgconfig
+
       - name: Configure dependencies
         run: |
           cargo remove bevy
