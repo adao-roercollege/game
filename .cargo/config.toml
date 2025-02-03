@@ -9,4 +9,3 @@ ar = "/usr/bin/x86_64-w64-mingw32-ar"
 # windows
 [target.x86_64-pc-windows-msvc]
 linker = "rust-lld.exe"
-rustflags = ["-Zshare-generics=n"]
