@@ -47,6 +47,12 @@ jobs:
           cargo install -f cargo-binutils
           rustup component add llvm-tools-preview
 
+      - name: Install aarch64-linux-gnu-gcc
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt update
+          sudo apt install gcc-aarch64-linux-gnu
+
       - name: Configure dependencies
         run: |
           cargo remove bevy
