@@ -34,6 +34,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: "${{ matrix.target }}"
+          toolchain: stable
 
       - name: Install Mold
         if: matrix.target == 'x86_64-unknown-linux-gnu'
@@ -56,9 +57,18 @@ jobs:
       - name: Configure dependencies
         run: |
           cargo remove bevy
-          cargo add bevy -F wayland
+          cargo add bevy
           cargo add log -F max_level_debug,release_max_level_warn
           sed -i -E 's/(log = \{ version = )"[0-9.]+"(, features = \[.*\] \})/\1"*"\2/' Cargo.toml
+
+      - name: Add Wayland
+        if: |
+          matrix.target == 'x86_64-unknown-linux-gnu' ||
+          matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          cargo add bevy -F wayland
+          sudo apt update
+          sudo apt install -y libwayland-client-dev
 
       - name: Setup Cache
         uses: Swatinem/rust-cache@v2
