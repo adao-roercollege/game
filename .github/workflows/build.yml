@@ -54,6 +54,14 @@ jobs:
           sudo apt update
           sudo apt install gcc-aarch64-linux-gnu
 
+      - name: Install linux dependencies
+        if: |
+          matrix.target == 'x86_64-unknown-linux-gnu' ||
+          matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt update
+          sudo apt install -y pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+
       - name: Configure dependencies
         run: |
           cargo remove bevy
@@ -68,7 +76,7 @@ jobs:
         run: |
           cargo add bevy -F wayland
           sudo apt update
-          sudo apt install -y libwayland-client
+          sudo apt install -y libwayland-dev
 
       - name: Setup Cache
         uses: Swatinem/rust-cache@v2
