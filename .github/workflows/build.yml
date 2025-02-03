@@ -68,7 +68,7 @@ jobs:
         run: |
           cargo add bevy -F wayland
           sudo apt update
-          sudo apt install -y libwayland-client-dev
+          sudo apt install -y libwayland-client
 
       - name: Setup Cache
         uses: Swatinem/rust-cache@v2
