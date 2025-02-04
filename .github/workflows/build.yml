@@ -69,4 +69,4 @@ jobs:
         with:
           name: ${{ matrix.name }}
           path: |
-            target/${{ matrix.target }}-${{ matrix.name }}${{ runner.os == 'Windows' && '.exe' || '' }}
+            target/${{ matrix.target }}/${{ env.PROJECT_NAME }}${{ runner.os == 'Windows' && '.exe' || '' }}
