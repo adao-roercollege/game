@@ -2,9 +2,8 @@ name: Build
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    tags:
+      - "*"
 
 env:
   PROJECT_NAME: game
@@ -23,9 +22,6 @@ jobs:
           - name: win-amd64
             runner: windows-latest
             target: x86_64-pc-windows-msvc
-          - name: linux-arm64
-            runner: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
 
     steps:
       - name: Checkout
@@ -40,8 +36,8 @@ jobs:
       - name: Install Mold
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
-          sudo apt update
-          sudo apt install -y clang mold
+          sudo apt-get update
+          sudo apt-get install -y clang mold
 
       - name: Install Lld
         if: matrix.target == 'x86_64-pc-windows-msvc'
@@ -49,48 +45,18 @@ jobs:
           cargo install -f cargo-binutils
           rustup component add llvm-tools-preview
 
-      - name: Install aarch64-linux-gnu-gcc and target dependencies
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          sudo dpkg --add-architecture arm64
-          sudo apt update
-          sudo apt install -y \
-            gcc-aarch64-linux-gnu \
-            pkg-config:arm64 \
-            libx11-dev:arm64 \
-            libasound2-dev:arm64 \
-            libudev-dev:arm64 \
-            libxcb-render0-dev:arm64 \
-            libxcb-shape0-dev:arm64 \
-            libxcb-xfixes0-dev:arm64 \
-            libwayland-dev:arm64
-
       - name: Install linux dependencies
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
-          sudo apt update
-          sudo apt install -y pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
-
-      - name: Configure pkg-config for cross-compilation
-        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          export PKG_CONFIG_ALLOW_CROSS=1
-          export PKG_CONFIG_SYSROOT_DIR=/usr/aarch64-linux-gnu
-          export PKG_CONFIG_PATH=/usr/aarch64-linux-gnu/lib/pkgconfig
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libwayland-dev
 
       - name: Configure dependencies
         run: |
           cargo remove bevy
-          cargo add bevy
+          cargo add bevy -F wayland
           cargo add log -F max_level_debug,release_max_level_warn
           sed -i -E 's/(log = \{ version = )"[0-9.]+"(, features = \[.*\] \})/\1"*"\2/' Cargo.toml
-
-      - name: Add Wayland
-        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'aarch64-unknown-linux-gnu'
-        run: |
-          cargo add bevy -F wayland
-          sudo apt update
-          sudo apt install -y libwayland-dev
 
       - name: Setup Cache
         uses: Swatinem/rust-cache@v2
@@ -98,29 +64,9 @@ jobs:
       - name: Build Binary
         run: cargo build --verbose --locked --release --target ${{ matrix.target }}
 
-      - name: Release Binary
-        shell: bash
-        run: |
-          BIN_SUFFIX=""
-          if [[ "${{ matrix.name }}" == "win-amd64" ]]; then
-            BIN_SUFFIX=".exe"
-          fi
-
-          # The built binary output location
-          BIN_OUTPUT="target/${{ matrix.target }}/release/${PROJECT_NAME}${BIN_SUFFIX}"
-
-          # Define a better name for the final binary
-          BIN_RELEASE="${PROJECT_NAME}-${{ matrix.name }}${BIN_SUFFIX}"
-          BIN_RELEASE_VERSIONED="${PROJECT_NAME}-${{ github.ref_name }}-${{ matrix.name }}${BIN_SUFFIX}"
-
-          # Create build directory if it doesn't exist
-          mkdir -p build
-
-          # Move the built binary where you want it
-          mv "${BIN_OUTPUT}" "./build/${BIN_RELEASE}"
-
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: build/${{ env.PROJECT_NAME }}-${{ matrix.name }}*
+          path: |
+            target/${{ matrix.target }}-${{ matrix.name }}${{ runner.os == 'Windows' && '.exe' || '' }}
