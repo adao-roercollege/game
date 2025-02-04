@@ -33,23 +33,17 @@ jobs:
           targets: "${{ matrix.target }}"
           toolchain: stable
 
-      - name: Install Mold
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
+      - name: Install linux dependencies
+        if: matrix.name == 'linux-amd64'
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang mold
+          sudo apt-get install -y clang mold pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libwayland-dev
 
-      - name: Install Lld
-        if: matrix.target == 'x86_64-pc-windows-msvc'
+      - name: Install Windows dependencies
+        if: matrix.name == 'win-amd64'
         run: |
           cargo install -f cargo-binutils
           rustup component add llvm-tools-preview
-
-      - name: Install linux dependencies
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libx11-dev libasound2-dev libudev-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libwayland-dev
 
       - name: Configure dependencies
         run: |
@@ -68,5 +62,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: |
-            target/${{ matrix.target }}/${{ env.PROJECT_NAME }}${{ runner.os == 'Windows' && '.exe' || '' }}
+          path: target/${{ matrix.target }}/release/${{ env.PROJECT_NAME }}${{ runner.os == 'Windows' && '.exe' || '' }}
