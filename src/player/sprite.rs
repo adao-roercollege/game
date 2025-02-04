@@ -10,7 +10,7 @@ pub struct PlayerSpritePlugin;
 impl Plugin for PlayerSpritePlugin {
   fn build(&self, app: &mut App) {
     app.add_systems(Startup, spawn_player);
-    // FIXME: Lets pray that this is just because im using and example ldtk map
+    // FIXME: Lets pray that this is just because im using and example ldtk map or the example on the documentation
     //app.register_ldtk_entity::<PlayerBundle>("Player");
   }
 }
